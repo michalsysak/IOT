@@ -1,5 +1,7 @@
-// Konfiguracja aplikacji
+// Konfiguracja aplikacji - POPRAWIONE ŚCIEŻKI API
 const API_BASE_URL = window.location.origin;
+const API_AUTH_URL = `${API_BASE_URL}/api/auth`;
+const API_TODOS_URL = `${API_BASE_URL}/api/todos`;
 
 // Główny obiekt aplikacji
 const TodoApp = {
@@ -64,7 +66,7 @@ const TodoApp = {
         this.loadTodos();
     },
 
-    // Obsługa logowania
+    // Obsługa logowania - POPRAWIONA ŚCIEŻKA
     async handleLogin(e) {
         e.preventDefault();
         
@@ -78,7 +80,7 @@ const TodoApp = {
         this.showMessage(loadingDiv);
         
         try {
-            const response = await fetch(`${API_BASE_URL}/auth/login`, {
+            const response = await fetch(`${API_AUTH_URL}/login`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -117,7 +119,7 @@ const TodoApp = {
         window.location.href = 'login.html';
     },
 
-    // Obsługa dodawania zadania
+    // Obsługa dodawania zadania - POPRAWIONA ŚCIEŻKA
     async handleAddTodo(e) {
         e.preventDefault();
         
@@ -130,7 +132,7 @@ const TodoApp = {
         }
         
         try {
-            const response = await fetch(`${API_BASE_URL}/todos`, {
+            const response = await fetch(API_TODOS_URL, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -154,14 +156,14 @@ const TodoApp = {
         }
     },
 
-    // Ładowanie zadań
+    // Ładowanie zadań - POPRAWIONA ŚCIEŻKA
     async loadTodos() {
         const loadingDiv = document.getElementById('loadingTodos');
         
         this.showLoadingState(true);
         
         try {
-            const response = await fetch(`${API_BASE_URL}/todos`, {
+            const response = await fetch(API_TODOS_URL, {
                 headers: {
                     'x-user-id': this.currentUserId
                 }
@@ -226,14 +228,14 @@ const TodoApp = {
         return todoItem;
     },
 
-    // Usuwanie zadania
+    // Usuwanie zadania - POPRAWIONA ŚCIEŻKA
     async deleteTodo(todoId) {
         if (!confirm('Czy na pewno chcesz usunąć to zadanie?')) {
             return;
         }
         
         try {
-            const response = await fetch(`${API_BASE_URL}/todos/${todoId}`, {
+            const response = await fetch(`${API_TODOS_URL}/${todoId}`, {
                 method: 'DELETE',
                 headers: {
                     'x-user-id': this.currentUserId
