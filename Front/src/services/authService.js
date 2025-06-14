@@ -1,9 +1,9 @@
 import axios from 'axios'
 
-export const login = async (email, password) => {
+export const login = async (username, password) => {
   const res = await axios.post(`${import.meta.env.VITE_API_URL}/login`, {
-    email,
+    username,
     password
   })
-  return res.data.token
+  return res.data.userId 
 }
