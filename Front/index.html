@@ -13,7 +13,7 @@
                 <h1>📝 TodoList</h1>
                 <div class="user-info">
                     <span id="welcomeMessage">Witaj, <span id="currentUser"></span>!</span>
-                    <button class="btn btn-secondary" onclick="logout()">Wyloguj</button>
+                    <button class="btn btn-secondary" onclick="TodoApp.logout()">Wyloguj</button>
                 </div>
             </div>
         </header>
@@ -41,7 +41,7 @@
             <div class="todos-section">
                 <div class="todos-header">
                     <h2>Twoje zadania</h2>
-                    <button class="btn btn-secondary" onclick="loadTodos()">🔄 Odśwież</button>
+                    <button class="btn btn-secondary" onclick="TodoApp.loadTodos()">🔄 Odśwież</button>
                 </div>
                 
                 <div id="loadingTodos" class="loading-message" style="display: none;">Ładowanie zadań...</div>
@@ -57,6 +57,6 @@
         </main>
     </div>
 
-    <script src="app.js"></script>
+    <script src="front.js"></script>
 </body>
 </html>
