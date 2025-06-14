@@ -1,230 +1,342 @@
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TodoList - Moje zadania</title>
-    <link rel="stylesheet" href="style.css">
-</head>
-<body>
-    <div class="app-container">
-        <header class="app-header">
-            <div class="header-content">
-                <h1>📝 TodoList</h1>
-                <div class="user-info">
-                    <span id="welcomeMessage">Witaj, <span id="currentUser"></span>!</span>
-                    <button class="btn btn-secondary" onclick="logout()">Wyloguj</button>
-                </div>
-            </div>
-        </header>
+/* Reset i podstawowe style */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
-        <main class="main-content">
-            <div class="todo-form-section">
-                <h2>Dodaj nowe zadanie</h2>
-                <form id="todoForm" class="todo-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label for="todoTitle">Tytuł zadania</label>
-                            <input type="text" id="todoTitle" name="title" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="todoDescription">Opis zadania</label>
-                            <input type="text" id="todoDescription" name="description">
-                        </div>
-                        <button type="submit" class="btn btn-primary">Dodaj zadanie</button>
-                    </div>
-                </form>
-                
-                <div id="todoMessage" class="message" style="display: none;"></div>
-            </div>
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    color: #333;
+}
 
-            <div class="todos-section">
-                <div class="todos-header">
-                    <h2>Twoje zadania</h2>
-                    <button class="btn btn-secondary" onclick="loadTodos()">🔄 Odśwież</button>
-                </div>
-                
-                <div id="loadingTodos" class="loading-message" style="display: none;">Ładowanie zadań...</div>
-                <div id="todosContainer">
-                    <ul id="todosList" class="todos-list">
-                        <!-- Zadania będą dodawane dynamicznie -->
-                    </ul>
-                    <div id="noTodos" class="no-todos" style="display: none;">
-                        <p>Nie masz jeszcze żadnych zadań. Dodaj pierwsze zadanie powyżej!</p>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
+/* Style dla strony logowania */
+.login-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
 
-    <script>
-        const API_BASE_URL = window.location.origin;
-        let currentUserId = localStorage.getItem('userId');
-        let currentUsername = localStorage.getItem('username');
+.login-card {
+    background: white;
+    border-radius: 15px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    padding: 40px;
+    width: 100%;
+    max-width: 400px;
+    text-align: center;
+}
 
-        // Sprawdź czy użytkownik jest zalogowany
-        if (!currentUserId) {
-            window.location.href = 'login.html';
-        }
+.login-header h1 {
+    font-size: 2.5em;
+    margin-bottom: 10px;
+    color: #4facfe;
+}
 
-        // Ustaw nazwę użytkownika
-        document.getElementById('currentUser').textContent = currentUsername;
+.login-header p {
+    color: #666;
+    margin-bottom: 30px;
+}
 
-        // Funkcja wylogowania
-        function logout() {
-            localStorage.removeItem('userId');
-            localStorage.removeItem('username');
-            window.location.href = 'login.html';
-        }
+.login-form {
+    text-align: left;
+}
 
-        // Funkcja pokazywania komunikatów
-        function showMessage(message, type = 'success') {
-            const messageDiv = document.getElementById('todoMessage');
-            messageDiv.textContent = message;
-            messageDiv.className = `message ${type}`;
-            messageDiv.style.display = 'block';
-            
-            setTimeout(() => {
-                messageDiv.style.display = 'none';
-            }, 3000);
-        }
+.form-group {
+    margin-bottom: 20px;
+}
 
-        // Dodawanie nowego zadania
-        document.getElementById('todoForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            
-            const title = document.getElementById('todoTitle').value;
-            const description = document.getElementById('todoDescription').value;
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/todos`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'x-user-id': currentUserId
-                    },
-                    body: JSON.stringify({ title, description })
-                });
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+}
 
-                const data = await response.json();
+.form-group input {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
 
-                if (response.ok) {
-                    showMessage('Zadanie zostało dodane!', 'success');
-                    document.getElementById('todoForm').reset();
-                    loadTodos(); // Odśwież listę zadań
-                } else {
-                    showMessage(data.error || 'Błąd podczas dodawania zadania', 'error');
-                }
-            } catch (error) {
-                showMessage('Błąd połączenia z serwerem', 'error');
-            }
-        });
+.form-group input:focus {
+    outline: none;
+    border-color: #4facfe;
+    box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+}
 
-        // Ładowanie zadań
-        async function loadTodos() {
-            const loadingDiv = document.getElementById('loadingTodos');
-            const todosList = document.getElementById('todosList');
-            const noTodos = document.getElementById('noTodos');
-            
-            loadingDiv.style.display = 'block';
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/todos`, {
-                    headers: {
-                        'x-user-id': currentUserId
-                    }
-                });
+.login-footer {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid #eee;
+    font-size: 14px;
+    color: #666;
+}
 
-                const todos = await response.json();
-                loadingDiv.style.display = 'none';
+/* Style dla strony głównej */
+.app-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
 
-                if (response.ok) {
-                    displayTodos(todos);
-                } else {
-                    showMessage(todos.error || 'Błąd podczas ładowania zadań', 'error');
-                }
-            } catch (error) {
-                loadingDiv.style.display = 'none';
-                showMessage('Błąd połączenia z serwerem', 'error');
-            }
-        }
+.app-header {
+    background: white;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    padding: 20px 0;
+}
 
-        // Wyświetlanie zadań
-        function displayTodos(todos) {
-            const todosList = document.getElementById('todosList');
-            const noTodos = document.getElementById('noTodos');
-            
-            todosList.innerHTML = '';
-            
-            if (todos.length === 0) {
-                noTodos.style.display = 'block';
-                return;
-            }
-            
-            noTodos.style.display = 'none';
-            
-            todos.forEach(todo => {
-                const todoItem = document.createElement('li');
-                todoItem.className = 'todo-item';
-                todoItem.innerHTML = `
-                    <div class="todo-content">
-                        <div class="todo-info">
-                            <h3>${escapeHtml(todo.title)}</h3>
-                            ${todo.description ? `<p>${escapeHtml(todo.description)}</p>` : ''}
-                            <small class="todo-date">Utworzono: ${formatDate(todo.created_at)}</small>
-                        </div>
-                        <div class="todo-actions">
-                            <button class="btn btn-danger btn-small" onclick="deleteTodo(${todo.id})">
-                                🗑️ Usuń
-                            </button>
-                        </div>
-                    </div>
-                `;
-                todosList.appendChild(todoItem);
-            });
-        }
+.header-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
 
-        // Usuwanie zadania
-        async function deleteTodo(todoId) {
-            if (!confirm('Czy na pewno chcesz usunąć to zadanie?')) {
-                return;
-            }
-            
-            try {
-                const response = await fetch(`${API_BASE_URL}/todos/${todoId}`, {
-                    method: 'DELETE',
-                    headers: {
-                        'x-user-id': currentUserId
-                    }
-                });
+.app-header h1 {
+    font-size: 2em;
+    color: #4facfe;
+}
 
-                const data = await response.json();
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
 
-                if (response.ok) {
-                    showMessage('Zadanie zostało usunięte!', 'success');
-                    loadTodos(); // Odśwież listę zadań
-                } else {
-                    showMessage(data.error || 'Błąd podczas usuwania zadania', 'error');
-                }
-            } catch (error) {
-                showMessage('Błąd połączenia z serwerem', 'error');
-            }
-        }
+.user-info span {
+    font-weight: 600;
+    color: #333;
+}
 
-        // Funkcje pomocnicze
-        function escapeHtml(text) {
-            const div = document.createElement('div');
-            div.textContent = text;
-            return div.innerHTML;
-        }
+.main-content {
+    flex: 1;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+    width: 100%;
+}
 
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleString('pl-PL');
-        }
+.todo-form-section {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
 
-        // Załaduj zadania przy starcie
-        loadTodos();
-    </script>
-</body>
-</html>
+.todo-form-section h2 {
+    margin-bottom: 20px;
+    color: #333;
+}
+
+.todo-form .form-row {
+    display: flex;
+    gap: 20px;
+    align-items: end;
+    flex-wrap: wrap;
+}
+
+.todo-form .form-group {
+    flex: 1;
+    min-width: 200px;
+}
+
+.todos-section {
+    background: white;
+    border-radius: 15px;
+    padding: 30px;
+    box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+}
+
+.todos-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.todos-header h2 {
+    color: #333;
+}
+
+.todos-list {
+    list-style: none;
+}
+
+.todo-item {
+    background: #f8f9fa;
+    border: 1px solid #e9ecef;
+    border-radius: 10px;
+    padding: 20px;
+    margin-bottom: 15px;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.todo-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+}
+
+.todo-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 20px;
+}
+
+.todo-info {
+    flex: 1;
+}
+
+.todo-info h3 {
+    color: #333;
+    margin-bottom: 8px;
+    font-size: 1.2em;
+}
+
+.todo-info p {
+    color: #666;
+    margin-bottom: 8px;
+    line-height: 1.4;
+}
+
+.todo-date {
+    color: #999;
+    font-size: 0.9em;
+}
+
+.todo-actions {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+}
+
+.no-todos {
+    text-align: center;
+    padding: 40px;
+    color: #666;
+}
+
+.no-todos p {
+    font-size: 1.1em;
+}
+
+/* Przyciski */
+.btn {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 600;
+    transition: transform 0.2s, box-shadow 0.2s;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(79, 172, 254, 0.3);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+}
+
+.btn-small {
+    padding: 8px 15px;
+    font-size: 14px;
+}
+
+/* Komunikaty */
+.message {
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+    font-weight: 500;
+}
+
+.message.success {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.message.error, .error-message {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+    padding: 12px 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.loading-message {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 20px;
+}
+
+/* Responsywność */
+@media (max-width: 768px) {
+    .header-content {
+        flex-direction: column;
+        gap: 15px;
+        text-align: center;
+    }
+    
+    .todo-form .form-row {
+        flex-direction: column;
+    }
+    
+    .todo-content {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .todo-actions {
+        justify-content: flex-end;
+    }
+    
+    .todos-header {
+        flex-direction: column;
+        gap: 15px;
+        align-items: stretch;
+    }
+}
+
+@media (max-width: 480px) {
+    .main-content {
+        padding: 20px 15px;
+    }
+    
+    .todo-form-section,
+    .todos-section {
+        padding: 20px;
+    }
+    
+    .login-card {
+        padding: 30px 20px;
+    }
+}
